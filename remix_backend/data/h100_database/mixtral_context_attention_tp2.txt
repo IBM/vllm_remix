@@ -1,0 +1,13 @@
+framework,version,device,op_name,kernel_source,batch_size,isl,num_heads,num_key_value_heads,head_dim,beam_width,attn_dtype,kv_cache_dtype,step,window_size,tp_size,latency
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,1,128,16,4,128,1,bfloat16,bfloat16,0,0,2,0.012492927551269531
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,1,512,16,4,128,1,bfloat16,bfloat16,0,0,2,0.019451936721801757
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,1,1024,16,4,128,1,bfloat16,bfloat16,0,0,2,0.02810851287841797
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,1,2048,16,4,128,1,bfloat16,bfloat16,0,0,2,0.06847904205322265
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,4,128,16,4,128,1,bfloat16,bfloat16,0,0,2,0.015773216247558595
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,4,512,16,4,128,1,bfloat16,bfloat16,0,0,2,0.037608608245849606
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,4,1024,16,4,128,1,bfloat16,bfloat16,0,0,2,0.0943968963623047
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,4,2048,16,4,128,1,bfloat16,bfloat16,0,0,2,0.22799754333496094
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,8,128,16,4,128,1,bfloat16,bfloat16,0,0,2,0.018801919937133788
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,8,512,16,4,128,1,bfloat16,bfloat16,0,0,2,0.07863452911376953
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,8,1024,16,4,128,1,bfloat16,bfloat16,0,0,2,0.1690999298095703
+VLLM,0.14.0,NVIDIA H100 80GB HBM3,context_attention,vllm_flash_attn,8,2048,16,4,128,1,bfloat16,bfloat16,0,0,2,0.4224806213378906

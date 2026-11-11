@@ -1,0 +1,10 @@
+# Using NVLink3 600 GB/s
+host:
+  tads: 16e9
+  cuda: 16e9
+tads:
+  host: 16e9
+  cuda: 16e9
+cuda: 
+  host: 16e9
+  tads: 16e9

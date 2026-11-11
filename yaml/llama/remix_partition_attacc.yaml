@@ -1,0 +1,13 @@
+layers.0.self_attn.qkv_proj: h100
+layers.0.input_layernorm: h100
+layers.*.self_attn.o_proj: h100
+layers.*.mlp.gate_up_proj: h100
+layers.*.mlp.act_fn: h100
+layers.*.mlp.down_proj: h100
+layers.*.mlp: h100
+layers.*.post_attention_layernorm: h100
+layers.*.self_attn.qkv_proj: h100
+layers.*.self_attn.rotary_emb: h100
+layers.*.self_attn.attn: dram-pim
+layers.*.input_layernorm: h100
+embed_tokens: h100

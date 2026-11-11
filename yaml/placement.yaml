@@ -1,0 +1,64 @@
+1:
+  mapped_op: tads_ops::staging
+  mapping: staging_macro
+  resource: 70.71.72.0.8
+3:
+  mapped_op: tads_ops::dense_layer
+  mapping: cluster_vmm
+  resource: 70.71.72.19.13
+8:
+  mapped_op: aten::add
+  mapping: macro_add
+  resource: 70.71.72.0.18
+9:
+  mapped_op: tads_ops::vllm_rms
+  mapping: macro_layer_norm
+  resource: 70.71.72.0.30
+10:
+  mapped_op: tads_ops::staging
+  mapping: staging_macro
+  resource: 70.71.72.0.8
+12:
+  mapped_op: tads_ops::dense_layer
+  mapping: cluster_vmm
+  resource: 70.71.72.20.13
+13:
+  mapped_op: tads_ops::staging
+  mapping: staging_macro
+  resource: 70.71.72.0.8
+15:
+  mapped_op: aten::silu
+  mapping: cluster_silu
+  resource: 70.71.72.38.16
+17:
+  mapped_op: aten::mul
+  mapping: cluster_mul
+  resource: 70.71.72.38.21
+18:
+  mapped_op: tads_ops::staging
+  mapping: staging_macro
+  resource: 70.71.72.0.8
+20:
+  mapped_op: tads_ops::dense_layer
+  mapping: cluster_vmm
+  resource: 70.71.72.21.13
+25:
+  mapped_op: aten::add
+  mapping: macro_add
+  resource: 70.71.72.0.18
+26:
+  mapped_op: tads_ops::vllm_rms
+  mapping: macro_layer_norm
+  resource: 70.71.72.0.30
+27:
+  mapped_op: tads_ops::staging
+  mapping: staging_macro
+  resource: 70.71.72.0.8
+29:
+  mapped_op: tads_ops::dense_layer
+  mapping: cluster_vmm
+  resource: 70.71.72.22.13
+30:
+  mapped_op: aten::split_with_sizes
+  mapping: npu_split_with_sizes
+  resource: 70.71.66.14

@@ -1,0 +1,129 @@
+startup_latency: 2e-6
+transfer_latencies:
+  host:
+    3dcim: 1
+    a100:  1e9
+  3dcim:
+    host: 1
+    a100: 300e9
+    h100: 300e9
+    b200: 300e9
+    dram-pim: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  dram-pim:
+    a100: 300e9
+    h100: 300e9
+    b200: 300e9
+    h200: 300e9
+    imc: 300e9
+    3dcim: 300e9
+  imc:
+    a100: 300e9
+    b200: 300e9
+    h100: 300e9
+    dram-pim: 300e9
+  a100:
+    imc: 300e9
+    host: 1e9
+    3dcim: 300e9
+    dram-pim: 300e9
+    b200: 300e9
+    h100: 300e9
+    h200: 300e9
+    l40s: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  h100:
+    imc: 300e9
+    host: 1e9
+    3dcim: 300e9
+    dram-pim: 300e9
+    a100: 300e9
+    b200: 300e9
+    h200: 300e9
+    l40s: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  b200:
+    imc: 300e9
+    host: 1e9
+    3dcim: 300e9
+    dram-pim: 300e9
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    l40s: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  l40s:
+    imc: 300e9
+    host: 1e9
+    3dcim: 300e9
+    dram-pim: 300e9
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    b200: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  h200:
+    imc: 300e9
+    host: 1e9
+    3dcim: 300e9
+    dram-pim: 300e9
+    a100: 300e9
+    b200: 300e9
+    h100: 300e9
+    l40s: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  cerebras:
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    b200: 300e9
+    3dcim: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  spyre:
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    b200: 300e9
+    3dcim: 300e9
+    cerebras: 300e9
+    groq_rack: 300e9
+    inferentia: 300e9
+  groq_rack:
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    b200: 300e9
+    3dcim: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    inferentia: 300e9
+  inferentia:
+    a100: 300e9
+    h100: 300e9
+    h200: 300e9
+    b200: 300e9
+    3dcim: 300e9
+    cerebras: 300e9
+    spyre: 300e9
+    groq_rack: 300e9
+  

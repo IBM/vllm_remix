@@ -1,0 +1,10 @@
+layers.0.block_sparse_moe.experts: tads
+layers.0.block_sparse_moe.gate: tads
+#layers.1.self_attn.qkv_proj: tads
+#layers.0.self_attn.o_proj: tads
+layers.*.block_sparse_moe.experts: h100
+layers.*.self_attn.qkv_proj: h100
+layers.*.self_attn.o_proj: h100
+layers.*.block_sparse_moe.gate: h100
+layers.*.self_attn: h100
+layers.*.self_attn.attn: h100

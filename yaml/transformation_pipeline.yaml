@@ -1,0 +1,69 @@
+- map_jobs:
+    import: .mapping_placement
+    logging: "Mapping virtual nodes..."
+    arguments:
+      - layer_job_graph
+      - options
+    return: mapping_d
+- apply_transformation:
+    import: tads.tads_bindings
+    logging: "Lowering virtual nodes to jobs..."
+    arguments:
+      - layer_job_graph
+      - "lower_layers_to_jobs"
+      - system: system
+      - mappings: mapping_d
+    generate_graphs: "debug/jobs"
+- map_htree_jobs:
+    import: .mapping_placement
+    logging: "Getting H-tree mapping..."
+    arguments:
+      - layer_job_graph
+      - system
+      - options
+    generate_graphs: "debug/htree_mapping"
+# - apply_isomorphism:
+#     import: tads.tads_bindings
+#     #logging: "Applying H-tree wide split..."
+#     arguments:
+#       - layer_job_graph
+#       - "split_wide_mm_htree"
+#       - split_bias_act: True
+#     generate_graphs: "debug/split_wide_mm_htree"
+# - place_htree_jobs:
+#     import: .mapping_placement
+#     #logging: "Setting H-tree placement..."
+#     arguments:
+#       - layer_job_graph
+#     generate_graphs: "debug/htree_jobs_placed"
+- place_jobs:
+    import: .mapping_placement
+    logging: "Placing jobs..."
+    arguments:
+      - layer_job_graph
+      - options
+    generate_graphs: "debug/final_jobs_placed"
+- apply_transformation:
+    import: tads.tads_bindings
+    logging: "Inserting transfer jobs..."
+    arguments:
+      - layer_job_graph
+      - "insert_transfer_jobs"
+      - system: system
+    generate_graphs: "debug/transfer_inserted"
+# - apply_transformation:
+#     import: tads.tads_bindings
+#     logging: "Splitting sym dim..."
+#     arguments:
+#       - layer_job_graph
+#       - "split_sym_dim"
+#     generate_graphs: "debug/layers_split_sym_dim"
+# - apply_isomorphism:
+#     import: tads.tads_bindings
+#     logging: "Updating H-Tree transfer job params..."
+#     arguments:
+#       - layer_job_graph
+#       - "htree_transfer_params"
+#       - system: system
+#       - can_overlap: false
+#     generate_graphs: "debug/update_htree_params"

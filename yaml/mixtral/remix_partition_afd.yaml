@@ -1,0 +1,6 @@
+layers.*.block_sparse_moe.experts: 3dcim
+layers.*.block_sparse_moe.gate: 3dcim
+layers.*.self_attn.qkv_proj: h100
+layers.*.self_attn.o_proj: h100
+layers.*.self_attn: h100
+layers.*.self_attn.attn: h100

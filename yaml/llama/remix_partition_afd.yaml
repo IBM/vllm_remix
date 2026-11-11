@@ -1,0 +1,13 @@
+
+layers.*.mlp.gate_up_proj: 3dcim
+layers.*.mlp.act_fn: 3dcim
+layers.*.mlp.down_proj: 3dcim
+layers.*.mlp: 3dcim
+layers.*.post_attention_layernorm: h100
+layers.*.self_attn.o_proj: h100
+layers.*.self_attn.qkv_proj: h100
+layers.*.self_attn.rotary_emb: h100
+layers.*.self_attn.attn: h100
+layers.*.input_layernorm: h100
+embed_tokens: h100
+lm_head: h100

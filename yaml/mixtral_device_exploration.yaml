@@ -1,0 +1,7 @@
+layers.*.block_sparse_moe.experts: [b200,h100,a100, 3dcim]
+layers.*.self_attn.qkv_proj: [b200,h100,a100, imc, 3dcim]
+layers.*.self_attn.o_proj: [b200,h100,a100, imc, 3dcim, dram-pim]
+layers.*.block_sparse_moe.gate: [b200,h100,a100, 3dcim]
+layers.*.self_attn: [b200,h100,a100]
+layers.*.self_attn.attn: [b200,h100,a100, dram-pim]
+layers.*.self_attn.rotary_emb: [b200, h100, a100]

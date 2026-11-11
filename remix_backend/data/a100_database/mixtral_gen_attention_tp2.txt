@@ -1,0 +1,26 @@
+framework,version,device,op_name,kernel_source,batch_size,isl,num_heads,num_key_value_heads,head_dim,beam_width,attn_dtype,kv_cache_dtype,step,window_size,tp_size,latency
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,256,0,2,0.02157187271118164
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,1024,0,2,0.02615177536010742
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,2048,0,2,0.03082646369934082
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,4096,0,2,0.04219193649291992
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,8192,0,2,0.06787267303466797
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,4,1,16,4,128,1,bfloat16,bfloat16,16384,0,2,0.1089005126953125
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,256,0,2,0.026996000289916992
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,1024,0,2,0.07076169586181641
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,2048,0,2,0.11243532562255859
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,4096,0,2,0.18915744018554687
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,8192,0,2,0.34595547485351563
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,32,1,16,4,128,1,bfloat16,bfloat16,16384,0,2,0.6574969482421875
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,256,0,2,0.04477088165283203
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,1024,0,2,0.12257472229003906
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,2048,0,2,0.22151206970214843
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,4096,0,2,0.4187662658691406
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,8192,0,2,0.8076768188476563
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,64,1,16,4,128,1,bfloat16,bfloat16,16384,0,2,1.516461181640625
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,256,0,2,0.07054723358154297
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,1024,0,2,0.19301123046875
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,2048,0,2,0.3580711975097656
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,4096,0,2,0.6884990844726563
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,8192,0,2,1.3348848876953125
+VLLM,0.14.0,NVIDIA A100-SXM4-80GB,generation_attention,vllm_flash_attn,128,1,16,4,128,1,bfloat16,bfloat16,16384,0,2,2.5667626953125
+

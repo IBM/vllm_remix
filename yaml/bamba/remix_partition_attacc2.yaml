@@ -1,0 +1,12 @@
+layers.*.input_layernorm: gpu
+layers.*.mamba.in_proj: gpu
+layers.*.mamba: gpu
+layers.*.mamba.norm: gpu
+layers.*.mamba.out_proj: gpu
+layers.*.pre_ff_layernorm: gpu
+layers.*.feed_forward.gate_up_proj: gpu
+layers.*.feed_forward.act_fn: gpu
+layers.*.feed_forward.down_proj: gpu
+layers.*.self_attn.qkv_proj: gpu
+layers.*.self_attn: gpu
+layers.*.self_attn.o_proj: gpu

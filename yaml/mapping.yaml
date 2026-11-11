@@ -1,0 +1,48 @@
+1:
+  mapped_op: staging_macro # [staging_dram, staging_dram_pipelined, staging_macro, staging_npu, ]
+  name: tads_ops::staging
+3:
+  mapped_op: cluster_vmm
+  name: tads_ops::dense_layer
+8:
+  mapped_op: macro_add # [macro_add, npu_add, ]
+  name: aten::add
+9:
+  mapped_op: macro_layer_norm # [macro_layer_norm, npu_layer_norm, ]
+  name: tads_ops::vllm_rms
+10:
+  mapped_op: staging_macro # [staging_dram, staging_dram_pipelined, staging_macro, staging_npu, ]
+  name: tads_ops::staging
+12:
+  mapped_op: cluster_vmm
+  name: tads_ops::dense_layer
+13:
+  mapped_op: staging_macro # [staging_dram, staging_dram_pipelined, staging_macro, staging_npu, ]
+  name: tads_ops::staging
+15:
+  mapped_op: cluster_silu # [cluster_silu, npu_silu, ]
+  name: aten::silu
+17:
+  mapped_op: cluster_mul # [cluster_mul, macro_mul, npu_mul, ]
+  name: aten::mul
+18:
+  mapped_op: staging_macro # [staging_dram, staging_dram_pipelined, staging_macro, staging_npu, ]
+  name: tads_ops::staging
+20:
+  mapped_op: cluster_vmm
+  name: tads_ops::dense_layer
+25:
+  mapped_op: macro_add # [macro_add, npu_add, ]
+  name: aten::add
+26:
+  mapped_op: macro_layer_norm # [macro_layer_norm, npu_layer_norm, ]
+  name: tads_ops::vllm_rms
+27:
+  mapped_op: staging_macro # [staging_dram, staging_dram_pipelined, staging_macro, staging_npu, ]
+  name: tads_ops::staging
+29:
+  mapped_op: cluster_vmm
+  name: tads_ops::dense_layer
+30:
+  mapped_op: npu_split_with_sizes
+  name: aten::split_with_sizes

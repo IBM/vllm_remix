@@ -1,0 +1,13 @@
+layers.0.self_attn.qkv_proj: gpu
+layers.0.input_layernorm: gpu
+layers.*.self_attn.o_proj: tads
+layers.*.mlp.gate_up_proj: tads
+layers.*.mlp.act_fn: tads
+layers.*.mlp.down_proj: tads
+layers.*.mlp: tads
+layers.*.post_attention_layernorm: tads
+layers.*.self_attn.qkv_proj: tads
+layers.*.self_attn.rotary_emb: gpu
+layers.*.self_attn.attn: gpu
+layers.*.input_layernorm: tads
+embed_tokens: gpu

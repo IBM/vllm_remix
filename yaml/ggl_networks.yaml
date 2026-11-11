@@ -1,0 +1,206 @@
+# Defines a few networks, showcasing some ways they could be defined
+
+---
+# Defines a simple GGL network in yaml that could have been created by torch.compile and can be consumed for layer transformations
+layer:
+    name: io_in
+    type: io
+    dim:
+        - 1
+        - 28
+        - 28
+    out_edges:
+        - io_in_fc_1
+                        # Implicit flatten here. Do we make it explicit?
+layer:
+    name: fc_1
+    type: vmm
+    bias: true
+    dim:
+        - 784
+        - 250
+    in_edges:
+        - io_in_fc_1
+    out_edges:
+        - fc_1_relu_1
+layer:
+    name: relu_1
+    type: relu
+    in_edges:
+        - fc_1_relu_1
+    out_edges:
+        - relu_1_fc_2
+layer:
+    name: fc_2
+    type: vmm
+    bias: true
+    dim:
+        - 250
+        - 125
+    in_edges:
+        - relu_1_fc_2
+     out_edges:
+        - fc_2_relu_2
+layer:
+    name: relu_2
+    type: relu
+    in_edges:
+        - fc_2_relu_2
+    out_edges:
+        - relu_2_fc_3
+layer:
+    name: fc_3
+    type: vmm
+    bias: true
+    dim:
+        - 125
+        - 10
+    in_edges:
+        - relu_2_fc_3
+    out_edges:
+        - relu_2_fc_out
+
+...
+---
+# Defines a similar network, but with a block of repeating ip+relus
+# Can define incrementing values with {var}, {++var}, and {var++}, starting at 0.
+# {++var} increments and returns, {var++} returns and increments
+
+layer:
+    name: io_in
+    type: io
+    dim:
+        - 1
+        - 28
+        - 28
+    out_edges:
+        - io_in_fc_1
+layer:
+    name: fc_1
+    type: vmm
+    bias: true
+    dim:
+        - 784
+        - 250
+    in_edges:
+        - io_in_fc_1
+    out_edges:
+        - fc_1_relu_1
+layer:
+    name: relu_1
+    type: relu
+    in_edges:
+        - fc_1_relu_1
+    out_edges:
+        - relu_1_fc_2
+edge_patch: relu_1_fc_2: block_relu_{r}_fc_{++f}  # patch the edge from the previous layer into the block
+                                                  # starting edge resolves to block_relu_0_fc_1
+block:
+    repeat: 3
+    layer:
+        name: block_fc_{f}                  # First resolution is block_fc_1
+        type: vmm
+        bias: true
+        dim:
+            - 250
+            - 250
+        in_edges:
+            - block_relu_{r}_fc_{f}         # First resolution is block_relu_0_fc_1
+         out_edges:
+            - block_fc_{f}_relu_{++r}       # First resolution is block_fc_1_relu_1
+    layer:
+        name: block_relu_{r}
+        type: relu
+        in_edges:
+            - block_fc_{f}_relu_{r}         # First resolution is block_fc_1_relu_1
+        out_edges:
+            - block_relu_{r}_fc_{++f}       # First resolution is block_relu_1_fc_2
+
+edge_patch: block_relu_{r}_fc_{f} : relu_2_fc_3 # Patch back to main network terminology
+
+layer:
+    name: fc_3
+    type: vmm
+    bias: true
+    dim:
+        - 125
+        - 10
+    in_edges:
+        - relu_2_fc_3
+    out_edges:
+        - relu_2_fc_out
+
+...
+---
+# Define a network subgraph that has a weird split and concat to show edge property utility.
+# (Yes, the splits here could be inferred, but it is not always the case, and it is easier to work with/read if explicitly defined)
+layer:
+    name: io_in
+    type: io
+    dim:
+        - 1
+        - 28
+        - 28
+    out_edges:
+        - io_in_fc_1
+layer:
+    name: fc_1
+    type: vmm
+    bias: true
+    dim:
+        - 784
+        - 250
+    in_edges:
+        - io_in_fc_1
+    out_edges:
+        - yolo_residual # Two output edges, how are they split? Defined below
+        - fc_1_relu_1
+layer:
+    name: relu_1
+    type: relu
+    in_edges:
+        - fc_1_relu_1
+    out_edges:
+        - relu_1_fc_2
+layer:
+    name: fc_2
+    type: vmm
+    bias: true
+    dim:
+        - 200
+        - 125
+    in_edges:
+        - relu_1_fc_2
+     out_edges:
+        - fc_2_relu_2
+layer:
+    name: relu_2
+    type: relu
+    in_edges:
+        - fc_2_relu_2
+    out_edges:
+        - relu_2_fc_3
+layer:
+    name: fc_3
+    type: vmm
+    bias: true
+    dim:
+        - 175
+        - 10
+    in_edges:           # Two input edges, but how do they interact?
+        - yolo_residual
+        - relu_2_fc_3
+    out_edges:
+        - relu_2_fc_out
+edge:                   # Edges are defined by their width and their start position relative to
+                        # the total width of the output and input. The below definition of the edges
+                        # Results in yolo_residual being concatenated to the end of relu_2_fc_3
+    yolo_residual:
+        width: 50
+        out_start: 0
+        in_start: 50
+    relu_2_fc_3:
+        width: 125
+        out_start: 0
+        in_start: 0
+...

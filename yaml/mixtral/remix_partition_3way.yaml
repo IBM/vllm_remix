@@ -1,0 +1,17 @@
+layers.0.block_sparse_moe.experts: 3dcim
+layers.0.block_sparse_moe.gate: 3dcim
+#layers.0.block_sparse_moe: 3dcim
+layers.0.post_attention_layernorm: 3dcim
+layers.1.input_layernorm: 3dcim
+layers.1.self_attn.qkv_proj: 3dcim
+layers.0.self_attn.qkv_proj: 3dcim
+layers.0.input_layernorm: 3dcim
+layers.0.self_attn.o_proj: 3dcim
+layers.*.self_attn: h100
+layers.*.self_attn.attn: h100
+layers.*.self_attn.rotary_emb: h100
+layers.*.block_sparse_moe.experts: h100
+layers.*.block_sparse_moe.gate: h100
+layers.*.self_attn.qkv_proj: h100
+layers.*.self_attn.o_proj: h100
+layers.*.self_attn.attn: h100

@@ -1,0 +1,844 @@
+use_system_defaults: True
+implementations:
+  blackbox:
+  - blackbox
+  add:
+  - aten::add
+  div:
+  - aten::div
+  relu:
+  - aten::relu
+  vmm:
+  - tads_ops::dense_layer
+  max:
+  - aten::max
+  affine:
+  - tads_ops::affine
+  max_pool:
+  - aten::max_pool1d
+  - aten::max_pool2d
+  dram_read:
+  - tads_ops::global_IN
+  dram_write:
+  - tads_ops::global_OUT
+ops:
+  alu_add:
+    type: add
+    width: 5
+    base_latency: 5
+    pipeline_stages: 1
+    num_input_locks: 2
+  alu_div:
+    type: div
+    width: 5
+    base_latency: 5
+    pipeline_stages: 1
+    num_input_locks: 2
+  dpu_relu:
+    type: relu
+    width: 5
+    base_latency: 15
+    pipeline_latency: 3
+    pipeline_stages: 1
+  dpu_max:
+    type: max
+    width: 5
+    base_latency: 15
+    pipeline_latency: 3
+    pipeline_stages: 1
+  tile_relu:
+    type: relu
+    width: 512
+    pipeline_stages: 1
+  tile_affine:
+    type: affine
+    width: 512
+    base_latency: 15
+    pipeline_latency: 3
+    pipeline_stages: 1
+  fused_aff_relu:
+    type: blackbox
+    width: 512
+    base_latency: 15
+    pipeline_stages: 1
+    transformations:
+      blackbox:
+        subgraph: yaml/fused_aff_relu.yaml
+  tile_vmm:
+    type: vmm
+    width: 10
+    base_latency: 100
+    pipeline_latency: 20
+    pipeline_stages: 1
+    transformations:
+      mm_to_vmm:
+        no_arg: -1
+      split_tall_mm:
+        max_height: 10
+        add_op_name: alu_add
+      insert_affine_after_job:
+        job_name: tile_vmm
+        affine_op_name: tile_affine
+  dpu_vmm:
+    type: vmm
+    width: 32
+    base_latency: 100
+    pipeline_latency: 20
+    pipeline_stages: 1
+    transformations:
+      split_tall_mm:
+        max_height: 5
+        add_op_name: alu_add
+      split_wide_mm:
+        max_width: 5
+        split_bias_act: true
+  scratchpad_access:
+    type: memory_op
+    width: 512
+    base_latency: 1
+    pipeline_stages: 1
+    static_energy: 0.0001
+interconnects:
+  bidirectional_tile_p2p:
+    type: p2p
+    dir: BI
+    width: 512
+    base_latency: 30
+    stage: true
+  bidirectional_fabric_p2p:
+    type: p2p
+    dir: BI
+    width: 512
+    base_latency: 60
+    stage: true
+nodes:
+  mesh_node:
+  my_mesh:
+    vertices:
+      (0, 0): mesh_node
+      (1, 0): mesh_node
+      (2, 0): mesh_node
+      (3, 0): mesh_node
+      (4, 0): mesh_node
+      (0, 1): mesh_node
+      (1, 1): mesh_node
+      (2, 1): mesh_node
+      (3, 1): mesh_node
+      (4, 1): mesh_node
+      (0, 2): mesh_node
+      (1, 2): mesh_node
+      (2, 2): mesh_node
+      (3, 2): mesh_node
+      (4, 2): mesh_node
+      (0, 3): mesh_node
+      (1, 3): mesh_node
+      (2, 3): mesh_node
+      (3, 3): mesh_node
+      (4, 3): mesh_node
+      (0, 4): mesh_node
+      (1, 4): mesh_node
+      (2, 4): mesh_node
+      (3, 4): mesh_node
+      (4, 4): mesh_node
+    edges:
+    - ((0, 0),0)<bidirectional_tile_p2p>((1, 0),0)
+    - ((1, 0),0)<bidirectional_tile_p2p>((2, 0),0)
+    - ((2, 0),0)<bidirectional_tile_p2p>((3, 0),0)
+    - ((3, 0),0)<bidirectional_tile_p2p>((4, 0),0)
+    - ((0, 1),0)<bidirectional_tile_p2p>((1, 1),0)
+    - ((1, 1),0)<bidirectional_tile_p2p>((2, 1),0)
+    - ((2, 1),0)<bidirectional_tile_p2p>((3, 1),0)
+    - ((3, 1),0)<bidirectional_tile_p2p>((4, 1),0)
+    - ((0, 2),0)<bidirectional_tile_p2p>((1, 2),0)
+    - ((1, 2),0)<bidirectional_tile_p2p>((2, 2),0)
+    - ((2, 2),0)<bidirectional_tile_p2p>((3, 2),0)
+    - ((3, 2),0)<bidirectional_tile_p2p>((4, 2),0)
+    - ((0, 3),0)<bidirectional_tile_p2p>((1, 3),0)
+    - ((1, 3),0)<bidirectional_tile_p2p>((2, 3),0)
+    - ((2, 3),0)<bidirectional_tile_p2p>((3, 3),0)
+    - ((3, 3),0)<bidirectional_tile_p2p>((4, 3),0)
+    - ((0, 4),0)<bidirectional_tile_p2p>((1, 4),0)
+    - ((1, 4),0)<bidirectional_tile_p2p>((2, 4),0)
+    - ((2, 4),0)<bidirectional_tile_p2p>((3, 4),0)
+    - ((3, 4),0)<bidirectional_tile_p2p>((4, 4),0)
+    - ((0, 0),0)<bidirectional_tile_p2p>((0, 1),0)
+    - ((0, 1),0)<bidirectional_tile_p2p>((0, 2),0)
+    - ((0, 2),0)<bidirectional_tile_p2p>((0, 3),0)
+    - ((0, 3),0)<bidirectional_tile_p2p>((0, 4),0)
+    - ((1, 0),0)<bidirectional_tile_p2p>((1, 1),0)
+    - ((1, 1),0)<bidirectional_tile_p2p>((1, 2),0)
+    - ((1, 2),0)<bidirectional_tile_p2p>((1, 3),0)
+    - ((1, 3),0)<bidirectional_tile_p2p>((1, 4),0)
+    - ((2, 0),0)<bidirectional_tile_p2p>((2, 1),0)
+    - ((2, 1),0)<bidirectional_tile_p2p>((2, 2),0)
+    - ((2, 2),0)<bidirectional_tile_p2p>((2, 3),0)
+    - ((2, 3),0)<bidirectional_tile_p2p>((2, 4),0)
+    - ((3, 0),0)<bidirectional_tile_p2p>((3, 1),0)
+    - ((3, 1),0)<bidirectional_tile_p2p>((3, 2),0)
+    - ((3, 2),0)<bidirectional_tile_p2p>((3, 3),0)
+    - ((3, 3),0)<bidirectional_tile_p2p>((3, 4),0)
+    - ((4, 0),0)<bidirectional_tile_p2p>((4, 1),0)
+    - ((4, 1),0)<bidirectional_tile_p2p>((4, 2),0)
+    - ((4, 2),0)<bidirectional_tile_p2p>((4, 3),0)
+    - ((4, 3),0)<bidirectional_tile_p2p>((4, 4),0)
+  mesh_node_bg:
+    vertices:
+      (1,0): mesh_node
+      (2,1): mesh_node
+      (1,2): mesh_node
+      (0,1): mesh_node
+      (1,1): mesh_node
+    edges:
+    - ((0,1),0)<bidirectional_tile_p2p>((1,1),0)
+    - ((1,1),0)<bidirectional_tile_p2p>((2,1),0)
+    - ((1,0),0)<bidirectional_tile_p2p>((1,1),0)
+    - ((1,1),0)<bidirectional_tile_p2p>((1,2),0)
+  my_ring:
+    vertices:
+      (0, 0): mesh_node_bg
+      (1, 0): mesh_node_bg
+      (2, 0): mesh_node_bg
+      (3, 0): mesh_node_bg
+      (4, 0): mesh_node_bg
+    edges:
+    - ((0, 0),3)<bidirectional_tile_p2p>((1, 0),1)
+    - ((1, 0),3)<bidirectional_tile_p2p>((2, 0),1)
+    - ((2, 0),3)<bidirectional_tile_p2p>((3, 0),1)
+    - ((3, 0),3)<bidirectional_tile_p2p>((4, 0),1)
+    - ((4, 0),3)<bidirectional_tile_p2p>((0, 0),1)
+  my_crossbar:
+    vertices:
+      (0, 0): mesh_node_bg
+      (1, 0): mesh_node_bg
+      (2, 0): mesh_node_bg
+      (3, 0): mesh_node_bg
+      (4, 0): mesh_node_bg
+      (0, 1): mesh_node_bg
+      (1, 1): mesh_node_bg
+      (2, 1): mesh_node_bg
+      (3, 1): mesh_node_bg
+      (4, 1): mesh_node_bg
+      (0, 2): mesh_node_bg
+      (1, 2): mesh_node_bg
+      (2, 2): mesh_node_bg
+      (3, 2): mesh_node_bg
+      (4, 2): mesh_node_bg
+      (0, 3): mesh_node_bg
+      (1, 3): mesh_node_bg
+      (2, 3): mesh_node_bg
+      (3, 3): mesh_node_bg
+      (4, 3): mesh_node_bg
+      (0, 4): mesh_node_bg
+      (1, 4): mesh_node_bg
+      (2, 4): mesh_node_bg
+      (3, 4): mesh_node_bg
+      (4, 4): mesh_node_bg
+    edges:
+    - ((0, 0),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((0, 0),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((1, 0),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((2, 0),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((3, 0),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((4, 0),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((0, 1),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((1, 1),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((2, 1),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((3, 1),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((4, 1),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((0, 2),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((1, 2),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((2, 2),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((3, 2),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((4, 2),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((0, 3),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((1, 3),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((2, 3),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((3, 3),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((4, 3),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((0, 4),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((1, 4),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((3, 4),4)
+    - ((2, 4),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((3, 4),4)<bidirectional_tile_p2p>((4, 4),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((0, 0),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((1, 0),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((2, 0),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((3, 0),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((4, 0),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((0, 1),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((1, 1),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((2, 1),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((3, 1),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((4, 1),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((0, 2),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((1, 2),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((2, 2),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((3, 2),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((4, 2),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((0, 3),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((1, 3),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((2, 3),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((3, 3),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((4, 3),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((0, 4),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((1, 4),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((2, 4),4)
+    - ((4, 4),4)<bidirectional_tile_p2p>((3, 4),4)
+  system:
+    vertices:
+      (0,0): my_mesh
+      (1,0): my_ring
+      (2,0): my_crossbar
+    edges:
+    - ((0,0),0)<bidirectional_fabric_p2p>((1,0),0)
+    - ((1,0),0)<bidirectional_fabric_p2p>((2,0),0)

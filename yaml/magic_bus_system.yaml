@@ -1,0 +1,470 @@
+# Energy values pulled from https://github.ibm.com/AnalogAI-Architecture/ADS3.0/blob/master/Inputs/system/componentLib.ZEUS2.ads
+# Magic Bus topology: all 64 mvm_clusters connected directly to io_landing_pad
+# via separate input and output interconnects (no intermediate routers)
+---
+use_system_defaults: True
+# Ops and their implementations that can be performed by elements in the system
+implementations:
+  add:
+    - aten::add
+  split:
+    - aten::split
+  mul:
+    - aten::mul
+  silu:
+    - aten::silu
+  vmm:
+    - tads_ops::dense_layer
+    - tads_ops::grouped_mm
+  bmm:
+    - aten::bmm
+  attention:
+    - tads_ops::attention
+    - tads_ops::attention_2
+  affine:
+    - tads_ops::affine
+  layer_norm:
+    - tads_ops::layer_norm
+    - tads_ops::rms_norm
+    - tads_ops::vllm_rms
+  mem_access:
+    - tads_ops::mem_access
+  softmax:
+    - aten::_softmax
+  argmax:
+    - aten::argmax
+  staging:
+    - tads_ops::staging
+  cat:
+    - aten::cat
+  split_with_sizes:
+    - aten::split_with_sizes
+  clock:
+    - tads_ops:passthrough
+
+ops:
+  htree_out_cat:
+    type: cat
+    width: 1000000
+    staging: true
+  htree_out_cat_0:
+    extends: htree_out_cat
+  htree_out_cat_1:
+    extends: htree_out_cat
+  htree_out_cat_2:
+    extends: htree_out_cat
+  htree_out_cat_3:
+    extends: htree_out_cat
+  htree_out_cat_4:
+    extends: htree_out_cat
+  htree_out_cat_5:
+    extends: htree_out_cat
+  staging_base:
+    type: staging
+    width: 1000000
+    staging: True
+  staging_macro:
+    extends: staging_base
+  staging_dram:
+    extends: staging_base
+  staging_dram_pipelined:
+    extends: staging_base
+  staging_npu:
+    staging: true
+    extends: staging_base
+  macro_clock:
+    type: clock
+    width: 1000000
+    base_latency: 1
+    dynamic_energy: 0.0
+    static_energy: 0.670
+    area: 0.1
+    gatable: false
+  cluster_vmm:
+    type: vmm
+    width: 1000000
+    base_latency: 58
+    latency_lambda: |
+      from cim_functions import get_mvm_plus_reduction_latency
+      result = get_mvm_plus_reduction_latency(resource, job)
+    # tile energy: 0.06W * 16 tiles = 0.96 W (nJ/nS)
+    # tile energy + (0.00124 (FMA Energy per unit pJ) * 256 (64*4 units per cluster) * 1000 (pJ->nJ))
+    dynamic_energy: 0.9603174400
+    area: 0.9
+    gatable: true
+    transformations:
+      htree_vmm:
+        max_width: 1024
+        split_bias_act: True
+  npu_split_with_sizes:
+    type: split_with_sizes
+    width: 512
+    dynamic_energy: 0.0032
+    area: 0.5
+  npu_silu:
+    type: silu
+    width: 512
+    base_latency: 1
+    dynamic_energy: 0.0032
+    area: 0.5
+  cluster_silu:
+    type: silu
+    width: 512
+    base_latency: 1 # Hardcoded for now
+    dynamic_energy: 0.0032
+    area: 0.5
+  npu_add:
+    type: add
+    width: 512
+    staging: true
+    base_latency: 1 # Hardcoded for now, to be characterized
+    # static_energy: 0.00001
+    dynamic_energy: 0.00001
+    area: 1.4
+  macro_add:
+    type: add
+    width: 512
+    base_latency: 1
+    staging: True
+    # latency_lambda: |
+    #   import math
+    #   tensor_sizes = [dim.concreteInt() for dim in job.tensorSizes()[0]][1:]
+    #   B = [dim.concreteInt() for dim in job.tensorSizes()[0]][0]
+    #   bytes = math.prod(tensor_sizes)
+    #   # print(bytes)
+    #   # if bytes == 12288:
+    #   #   print("Halving KQV output")
+    #   #   bytes = bytes // 2
+    #   num_vecs = math.ceil(bytes/512)
+    #   result = (50 + num_vecs * 8)*B
+    #   # print(f"Macro add {result} for {num_vecs} 512-byte vectors")
+    # static_energy: 0.00001
+    dynamic_energy: 0.00001
+    area: 1.4
+  macro_mul:
+    type: mul
+    width: 512
+    base_latency: 16 # Hardcoded for now, dependent on accumulator architecture
+    # static_energy: 0.00001
+    dynamic_energy: 0.00001
+    area: 1.4
+  npu_mul:
+    type: mul
+    width: 512
+    base_latency: 1 # Hardcoded for now, to be characterized
+    # static_energy: 0.00001
+    dynamic_energy: 0.00001
+    area: 1.4
+  cluster_mul:
+    type: mul
+    width: 512
+    base_latency: 16 # Hardcoded for now, dependent on accumulator architecture
+    # static_energy: 0.00001
+    dynamic_energy: 0.00001
+    area: 1.4
+  npu_bmm:
+    type: bmm
+    width: 512
+    staging: true
+    base_latency: 200 # if less then 45, it is problem
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  npu_attention:
+    type: attention
+    width: 512
+    base_latency: 0
+    latency_lambda: |
+      from cim_functions import get_attention_time
+      result = get_attention_time(job)
+    dynamic_energy: 200 # W -> nJ/nS
+  npu_softmax:
+    type: softmax
+    width: 512
+    base_latency: 1
+    # To be replaced with characterization of NPU attention function
+    # latency_lambda: |
+    #   input_shape = job.inputArguments()['self'].shape()
+    #   num_heads = input_shape[0]
+    #   M = input_shape[1]
+    #   N = input_shape[2]
+    #   result = int(3.5327*N**2 + 100524*N + 91.63)
+    #   print(f"attention sequence length: {N} latency: {result}")
+
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  macro_softmax:
+    type: softmax
+    width: 512
+    base_latency: 1
+    staging: True
+    # To be replaced with characterization of NPU attention function
+    # latency_lambda: |
+    #   input_shape = job.inputArguments()['self'].shape()
+    #   num_heads = input_shape[0]
+    #   M = input_shape[1]
+    #   N = input_shape[2]
+    #   result = int(3.5327*N**2 + 100524*N + 91.63)
+    #   print(f"attention sequence length: {N} latency: {result}")
+
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1    
+  npu_argmax:
+    type: argmax
+    width: 512
+    base_latency: 200 # Hardcoded for now, to be characterized
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  macro_argmax:
+    type: argmax # Accomplished via distributed argmax
+    width: 512
+    latency_lambda: |
+      import math
+      tensor_sizes = [dim.concreteInt() for dim in job.tensorSizes()[0]]
+      bytes = math.prod(tensor_sizes)
+      # print(bytes)
+      if bytes == 12288:
+        print("Halving KQV output")
+        bytes = bytes // 2
+      num_vecs = math.ceil(bytes/512)
+      result = 42 + num_vecs * 8
+      # print(f"Htree out timing {result} for {num_vecs} 512-byte vectors")
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  htree_argmax:
+    type: argmax # Accomplished via distributed argmax
+    width: 512
+    base_latency: 100
+    latency_lambda: |
+      # latency is the pipeline delay and some extra cycles to finish the argmax
+      result = 50+10
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  npu_layer_norm:
+    type: layer_norm
+    width: 512
+    base_latency: 1 # Hardcoded for now, to be characterized
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+  macro_layer_norm:
+    type: layer_norm
+    width: 512
+    staging: true
+    base_latency: 10
+    # latency_lambda: |
+    #  from cim_functions import *
+    #  result = int(distributed_operation())
+    #  print(f"layer norm latency: {result}")
+    # static_energy: 0.0001
+    dynamic_energy: 0.0001
+    area: 0.1
+
+# Interconnects that can be used in nodes or fabrics
+interconnects:
+  passthrough:
+    type: p2p
+    dir: UNI
+    width: 10000000
+    base_latency: 0
+    pipeline_stages: 0
+    stage: true
+    gatable: false
+    following_edge_type: ATOMIC
+    report_category: virtual
+    dynamic_energy: 0
+    static_energy: 0
+  # Magic Bus input: direct wire from io_landing_pad to each mvm_cluster
+  # Energy equal the sum of the full H-tree input path (levels 0-6):
+  #   dynamic: 0.018*(18+10+10+6+6+4+3) = 0.018*57 = 1.026 nJ
+  #   static:  0.00049*(18+10+10+6+6+4+3) = 0.00049*57 = 0.02793 nJ
+  magic_bus_in:
+    extends: passthrough
+    report_category: magic_bus_in
+    dynamic_energy: 0.144
+    static_energy: 0.00392
+    pipeline_stages: 50 #8
+    latency_lambda: |
+      from cim_functions import get_htree_in_latency
+      result = get_htree_in_latency(interconnect, job)
+  # Magic Bus output: direct wire from each mvm_cluster back to io_landing_pad
+  # Energy equal the sum of the full H-tree output path (levels 6-0):
+  #   dynamic: 0.018*57 = 1.026 nJ
+  #   static:  0.00049*57 = 0.02793 nJ
+  magic_bus_out:
+    extends: passthrough
+    report_category: magic_bus_out
+    dynamic_energy: 0.144
+    static_energy: 0.00392
+    pipeline_stages: 50 # 8
+    latency_lambda: |
+      from cim_functions import get_htree_out_latency
+      result = get_htree_out_latency(interconnect, job)
+  htree_leaf_p2p:
+    type: p2p
+    dir: UNI
+    width: 10000000
+    stage: true
+    following_edge_type: ATOMIC
+  cnand_p2p:
+    type: p2p
+    dir: BI
+    width: 10000000
+    stage: true
+  memory_npu_p2p:
+    type: p2p
+    dir: BI
+    width: 1000000000
+    base_latency: 1
+    latency_lambda: |
+      import math
+      # memory_speed = 136 # LPDDR5 GB/s
+      memory_speed = 1704 # A100 HBM
+      memory_speed = memory_speed * (1024**3)/1e9 # B/ns
+      tensor_sizes = [dim.concreteInt() for dim in job.tensorSizes()[0]]
+      dram_bytes = math.prod(tensor_sizes)
+      result=int(dram_bytes//memory_speed)
+      # print(f"Moving {dram_bytes} bytes DRAM<->NPU in {result} ns at {memory_speed} B/ns")
+    stage: true
+    report_category: DRAM
+    following_edge_type: ATOMIC
+  memory_npu_p2p_pipelined:
+    type: p2p
+    dir: BI
+    width: 1000000000
+    base_latency: 1
+    pipeline_stages: 2078
+    latency_lambda: |
+      import math
+      from cim_functions import get_attention_time
+      attention_time = get_attention_time(job)
+      # print(f"Attention time is {attention_time}")
+      # memory_speed = 136 # LPDDR5 GB/s
+      memory_speed = 1704 # A100 HBM
+      memory_speed = memory_speed * (1024**3)/1e9 # B/ns
+      tensor_sizes = [dim.concreteInt() for dim in job.tensorSizes()[0]]
+      dram_bytes = math.prod(tensor_sizes)
+      result=int(dram_bytes//memory_speed)
+      # print(f"latency is {result}")
+      pipelining = 1
+      if result > attention_time/2:
+        pipelining = result - int(attention_time/2) - 1
+      # print(f"Overhead time is {pipelining}")
+      interconnect.pipelineStages(pipelining)
+      # print(f"Moving {dram_bytes} bytes DRAM<->NPU in {result} ns at {memory_speed} B/ns")
+    stage: true
+    report_category: DRAM
+    following_edge_type: ATOMIC
+  npu_macro_p2p:
+    type: p2p
+    dir: BI
+    width: 1000000000
+    pipeline_stages: 500 # startup latency
+    # base_latency: 1
+    latency_lambda: |
+      import math
+      startup_latency = interconnect.pipelineStages()
+      memory_speed = 64 # PCIe gen4 GB/s
+      memory_speed = memory_speed * (1024**3)/1e9 # B/ns
+      tensor_sizes = [dim.concreteInt() for dim in job.tensorSizes()[0]]
+      bytes = math.prod(tensor_sizes)
+      # print(f"Moving {bytes} bytes NPU<->CNAND at {memory_speed} B/ns with a startup latency of {startup_latency}")
+      result=int(bytes//memory_speed) + startup_latency
+    # Assume full utilization when running, 6pJ/bit, 64GB/s 512 b/ns, 6pJ*512*1e3-3 = 3.072nJ/nS = 3.072W
+    dynamic_energy: 3.072
+    report_category: NPU<->CNAND
+    stage: true
+  npu_bus:
+    type: bus
+    width: 10000000
+    stage: true
+nodes:
+  mvm_cluster:
+    ops:
+      - cluster_vmm
+      - cluster_silu
+      - cluster_mul
+  io_landing_pad:
+    channels: 100
+    ops:
+      - htree_out_cat
+      - staging_macro
+      - macro_layer_norm
+      - macro_add
+      - macro_argmax
+      - macro_mul
+      - macro_softmax
+  bus_router:
+  # post_processor:
+  #   ops:
+  #     - macro_layer_norm
+  #     - macro_add
+  #     - macro_argmax
+  #     - macro_mul
+  clock:
+    ops:
+      - macro_clock
+  mvm_macro:
+    vertices:
+      (0,0): io_landing_pad   # Entrance / exit of the macro
+      (1,0): bus_router # Input Level 0
+      (2,0..63): mvm_cluster  # 64 clusters, each with a dedicated input and output wire
+      # (3,0): post_processor
+
+    edges:
+      # - ((0,0),0)<cnand_p2p>((3,0),0) # Connect landing pad to post_processor
+
+      # Magic Bus input: separate direct wire from landing pad to every cluster
+      - "((0,0),0)<magic_bus_in>((1,0),0)"
+
+      # From bus_router to CNAND clusters (virtual, latency and energy paid for on magic_bus_in)
+      - "((1,0),0)<passthrough>((2,0..64),0)"
+
+      # From CNAND clusters to bus_router (virtual, latency and energy paid for on magic_bus_in)
+      - "((2,0..64),0)<passthrough>((1,0),0)"
+
+      # Magic Bus output: separate direct wire from every cluster back to landing pad
+      - "((1,0),0)<magic_bus_out>((0,0),0)"
+
+    plot_edges: debug/magic-bus.svg
+  npu_element:
+    channels: -1
+    ops:
+      - npu_silu
+      - npu_add
+      - npu_mul
+      - npu_split_with_sizes
+      - npu_bmm
+      - npu_attention
+      - npu_layer_norm
+      - npu_softmax
+      - npu_argmax
+      - staging_npu
+  memory:
+    channels: -1
+    ops:
+      - staging_dram
+  memory_pipelined:
+    channels: -1
+    ops:
+      - staging_dram_pipelined
+  top_node:
+    vertices:
+      (0,0): mvm_macro
+      (1,0): npu_element
+      (2,0): memory
+      (3,0): memory_pipelined
+      (4,0): clock
+    edges:
+      - ((1,0),0)<npu_macro_p2p>((0,0),0)
+      - ((1,0),0)<memory_npu_p2p>((2,0),0)
+      - ((1,0),0)<memory_npu_p2p_pipelined>((3,0),0)
+
+  system:
+    vertices:
+      (0,0): top_node

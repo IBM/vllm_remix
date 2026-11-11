@@ -1,0 +1,17 @@
+layers.*.self_attn.o_proj: [a100, b200,h100, 3dcim, dram_pin]
+layers.*.mlp.gate_up_proj: [a100, b200,h100, 3dcim]
+layers.*.mlp.down_proj: [a100, b200,h100, 3dcim]
+layers.*.self_attn.qkv_proj: [a100, b200,h100, 3dcim]
+embed_tokens: [a100,h100]
+norm: [a100,h100]
+#layers.*.self_attn: [a100, b200,h100, cerebras, spyre, inferentia, dram-pim]
+layers.*.self_attn.attn: [a100, b200,h100, dram-pim]
+layers.*.self_attn.rotary_emb: [a100, b200,h100]
+#model.layers.*.self_attn.o_proj: [h100, 3dcim, dram-pim]
+#model.layers.*.mlp.gate_proj: [h100, 3dcim], dram-pim
+#model.layers.*.mlp.up_proj: [h100, 3dcim], dram-pim
+#model.layers.*.mlp.down_proj: [h100, 3dcim], dram-pim
+#model.layers.*.self_attn.q_proj: [h100, 3dcim, dram-pim]
+#model.layers.*.self_attn.k_proj: [h100, 3dcim, dram-pim]
+#model.layers.*.self_attn.v_proj: [h100, 3dcim, dram-pim]
+#model.layers.*.self_attn.attn: [gpu, dram-pim]
