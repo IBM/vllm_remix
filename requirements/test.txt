@@ -99,7 +99,7 @@ cachetools==5.5.2
     #   google-auth
     #   mlflow-skinny
     #   mlflow-tracing
-certifi==2024.8.30
+certifi==2026.10.18
     # via
     #   fiona
     #   httpcore
