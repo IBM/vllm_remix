@@ -4,9 +4,10 @@
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true,
-    "prPriority": 10,
-    "minimumReleaseAge": null
+    "prPriority": 10
   },
-  "prHourlyLimit": 0,
+  "pip_requirements": {
+    "managerFilePatterns": ["**/requirements/*.txt"]
+  },
   "prConcurrentLimit": 20
 }
