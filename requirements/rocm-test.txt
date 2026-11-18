@@ -12,7 +12,7 @@ pytest-rerunfailures==14.0
 pytest-shard==0.1.2
 
 # Async/HTTP dependencies
-anyio==4.6.2.post1
+anyio==4.14.2
     # via httpx, starlette
 aiohttp==3.13.0
     # via gpt-oss
