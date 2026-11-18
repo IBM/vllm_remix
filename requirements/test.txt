@@ -326,7 +326,7 @@ h11==0.14.0
     # via
     #   httpcore
     #   uvicorn
-h2==4.3.0
+h2==4.4.1
     # via httpx
 h5py==3.13.0
     # via terratorch
