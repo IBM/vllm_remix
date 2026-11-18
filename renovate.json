@@ -1,13 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "osvVulnerabilityAlerts": true,
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "prPriority": 10
-  },
   "pip_requirements": {
-    "fileMatch": ["(^|/)requirements/.+\\.txt$"]
-  }
-  "prConcurrentLimit": 20
+    "managerFilePatterns": ["/(^|/)requirements/[^/]+\\.txt$/"]
+  },
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 10,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
 }
