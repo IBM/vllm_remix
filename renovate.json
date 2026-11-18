@@ -7,7 +7,7 @@
     "prPriority": 10
   },
   "pip_requirements": {
-    "managerFilePatterns": ["**/requirements/*.txt"]
-  },
+    "fileMatch": ["(^|/)requirements/.+\\.txt$"]
+  }
   "prConcurrentLimit": 20
 }
