@@ -240,7 +240,7 @@ steps:
           # Clean up old nightly builds (keep only last 14)
           - "bash .buildkite/scripts/cleanup-nightly-builds.sh"
         plugins:
-          - docker-login#v3.0.0:
+          - docker-login#v3.1.0:
               username: vllmbot
               password-env: DOCKERHUB_TOKEN
         env:
@@ -258,7 +258,7 @@ steps:
           # Clean up old nightly builds (keep only last 14)
           - "bash .buildkite/scripts/cleanup-nightly-builds.sh cu130-nightly-"
         plugins:
-          - docker-login#v3.0.0:
+          - docker-login#v3.1.0:
               username: vllmbot
               password-env: DOCKERHUB_TOKEN
         env:
