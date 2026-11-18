@@ -927,7 +927,7 @@ python-multipart==0.0.34
     # via mlflow-skinny
 python-rapidjson==1.20
     # via tritonclient
-pytorch-lightning==2.5.2
+pytorch-lightning==2.6.6
     # via
     #   lightly
     #   lightning
