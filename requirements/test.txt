@@ -6,7 +6,7 @@ accelerate==1.0.1
     # via
     #   lm-eval
     #   peft
-aenum==3.1.16
+aenum==3.1.17
     # via lightly
 affine==2.4.0
     # via rasterio
